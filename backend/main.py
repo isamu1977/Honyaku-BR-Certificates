@@ -50,7 +50,10 @@ BACKUP_DIR = os.path.join(BASE_DIR, "Backup")
 BACKUP_SUBDIRS = {
     "BIRTH_NEW": "BirthNew",
     "BIRTH_OLD": "BirthOld",
-    "MARRIAGE_NEW": "MarriageNew"
+    "BIRTH_STRICT": "BirthNew",
+    "MARRIAGE_NEW": "MarriageNew",
+    "MARRIAGE_OLD": "MarriageNew",
+    "MARRIAGE_STRICT": "MarriageNew"
 }
 
 # Ensure backup directories exist

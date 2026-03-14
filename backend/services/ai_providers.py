@@ -37,6 +37,8 @@ def load_prompt(document_type):
         filename = "marriage_new_v2.txt"
     elif document_type == "MARRIAGE_OLD":
         filename = "marriage_old.txt"
+    elif document_type == "MARRIAGE_STRICT":
+        filename = "marriage_strict.txt"
     else:
         filename = "birth_new.txt"
 
@@ -187,20 +189,24 @@ class OllamaProvider(AIProvider):
             api_key="ollama", # API key is not strictly required for local Ollama but OpenAI client needs one
             timeout=300.0, # 5 分タイムアウト - 長いテキスト処理に対応
         )
-        self.vision_model = "qwen3.5:2b"  # Modelo fixo para extração de texto da imagem
-        self.text_model = "mistral:instruct"  # Modelo fixo para tradução/estruturação JSON
+        self.vision_model = "qwen3.5:2b"  # Modelo para extração de texto da imagem
+        self.text_model = "mistral:instruct"  # Modelo para tradução/estruturação JSON
 
     def extract_text(self, image: Image.Image) -> str:
         # Resize image to prevent OOM on local Ollama runner and extreme inference times
         max_size = 1024
         if image.width > max_size or image.height > max_size:
             image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+        # Convert to RGB if needed (for PNG with alpha)
+        if image.mode in ('LA', 'RGBA', 'P'):
+            image = image.convert('RGB')
             
         buffered = BytesIO()
         image.save(buffered, format="JPEG")
         base64_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
         
-        prompt = "/no_think\nExtract all text from this image exactly as it appears. Output only the raw text, no explanations."
+        prompt = "Extract all text from this image exactly as it appears. Output only the raw text."
 
 
         try:
@@ -208,10 +214,6 @@ class OllamaProvider(AIProvider):
             response = self.client.chat.completions.create(
                 model=self.vision_model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a raw text extraction tool. Never use <think> tags, do not reason, do not explain. Only output the exact text visible in the image."
-                    },
                     {
                         "role": "user",
                         "content": [
@@ -226,16 +228,15 @@ class OllamaProvider(AIProvider):
                     }
                 ],
                 temperature=0.0,
-                max_tokens=1500,
+                max_tokens=2048,
                 extra_body={
-                    "stream": False,
                     "options": {
-                        "num_predict": 1500,
-                        "temperature": 0.0,
+                        "num_predict": 2048,
                     }
                 },
             )
             result = response.choices[0].message.content
+            print(f"Ollama raw response: {result}")
             # Thinking タグを除去
             extracted = clean_thinking_tags(result) if result else None
             print(f"\n=== TEXTO EXTRAÍDO DA IMAGEM (OLLAMA) ===\n{extracted}\n===========================================\n")

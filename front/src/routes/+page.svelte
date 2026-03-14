@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { updateCertificationData } from "$lib/stores/certificationStore";
   import { setBirthStrictData } from "$lib/stores/birthStrictStore";
+  import { setMarriageData } from "$lib/stores/marriageStore";
   import { onMount } from "svelte";
   import ProviderSelector from "$lib/components/ProviderSelector.svelte";
 
@@ -69,6 +70,9 @@
       if (docType === "BIRTH_STRICT") {
         setBirthStrictData(data);
         goto("/birthStrict");
+      } else if (docType === "MARRIAGE_STRICT") {
+        setMarriageData(data);
+        goto("/marriage");
       } else {
         updateCertificationData(data);
         // 他のドキュメントタイプの場合は既存のルーティング
@@ -115,6 +119,9 @@
         if (docType === "BIRTH_STRICT") {
           setBirthStrictData(data);
           goto("/birthStrict");
+        } else if (docType === "MARRIAGE_STRICT") {
+          setMarriageData(data);
+          goto("/marriage");
         } else if (docType === "MARRIAGE_NEW" || docType === "MARRIAGE_OLD") {
           goto("/marryNewVersion");
         } else if (docType === "BIRTH_NEW") {
@@ -249,18 +256,11 @@
           [ 厳密テーブル ]
         </a>
         <a
-          href="/birthTable"
+          href="/marriage"
           target="_blank"
-          class="border border-black px-2 py-1 font-bold text-[10px] bg-cyan-100 hover:bg-cyan-600 hover:text-white transition-colors"
+          class="border border-black px-2 py-1 font-bold text-[10px] bg-pink-100 hover:bg-pink-600 hover:text-white transition-colors"
         >
-          [ テーブル形式 ]
-        </a>
-        <a
-          href="/birthA4"
-          target="_blank"
-          class="border border-black px-2 py-1 font-bold text-[10px] bg-blue-100 hover:bg-blue-600 hover:text-white transition-colors"
-        >
-          [ A4 プレビュー ]
+          [ 婚姻証明書 ]
         </a>
       </div>
     </div>
@@ -380,22 +380,13 @@
           >
             Marriage Cert
           </h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div class="mb-8">
             <button
-              class="px-2 py-3 border border-black text-xs font-mono uppercase bg-[#f4f4f0] hover:bg-black hover:text-white transition-colors"
-              on:click={() => startTranslation('MARRIAGE_NEW_VER1')}
-              disabled={isLoading}>[ New Ver 1 ]</button
-            >
-            <button
-              class="px-2 py-3 border border-black text-xs font-mono uppercase bg-[#f4f4f0] hover:bg-black hover:text-white transition-colors"
-              on:click={() => startTranslation('MARRIAGE_NEW_VER2')}
-              disabled={isLoading}>[ New Ver 2 ]</button
-            >
-            <button
-              class="px-2 py-3 border border-black text-xs font-mono uppercase bg-[#f4f4f0] hover:bg-black hover:text-white transition-colors"
-              on:click={() => startTranslation('MARRIAGE_OLD')}
-              disabled={isLoading}>[ Old ]</button
-            >
+              class="w-full px-4 py-4 border-2 border-black text-sm font-mono uppercase bg-[#f4f4f0] hover:bg-green-600 hover:text-white hover:border-green-600 transition-colors font-bold tracking-wider"
+              on:click={() => startTranslation('MARRIAGE_STRICT')}
+              disabled={isLoading}>
+              [ START TRANSLATION ]
+            </button>
           </div>
         </div>
       </div>
