@@ -1,0 +1,113 @@
+
+Eu quero que vc verifique a imagem em anexo com cuidado para extrair todo o texto que existe nele.
+Esse documento é uma certidão de casamento do Brasil e quero que vc coloque os dados conforme as minhas instruções.
+
+Todos os dados que vc extrair precisam estar organizados e traduzidos para o japonês e os nomes das pessoas que constam na certidão precisam estar em katakana, sem o símbolo ・ entre os nomes, precisa ter apenas espaço.
+Quero que vc coloque todos os dados entre os parênteses do objeto de Javascript que tem abaixo da seguinte maneira:
+
+
+Se houver alguma coisa escrita do lado esquerdo do título Certidão de Casamanento = titleAditional1
+Se houver alguma coisa escrita abaixo do título Certidão de Casamanento = titleAditional2
+
+Nome do noivo escrito logo abaixo do título Certidão de Casamento = husbandSingleName
+Número do CPF do noivo escrito logo abaixo do título Certidão de Casamento (se houver) = husbandKojinBango
+
+Nome da noiva escrito logo abaixo do título Certidão de Casamento = wifeSingleName
+Número do CPF da noiva escrito logo abaixo do título Certidão de Casamento (se houver) = wifeKojinBango
+
+Número de matrícula = registrationNum
+
+Nome do noivo escrito logo abaixo do número de matrícula =  husbandName
+Data de nascimento do noivo (formato japonês e depois da data colocar 生まれ) = husbandBirthDate
+Local de nascimento do noivo (primeiro a cidade com o kanji de 市 logo após e o nome do estado por extenso e depois coloca o kanji de 州) e colocar depois 出身 = husbandBirthPlace
+Nacionalidade do noivo (se for brasileiro, ブラジル国籍) = husbandCitizenship
+Nome do pai do noivo (se tiver) e colocar na frente 父親氏名： = husbandFatherName
+Nome da mãe do noivo e colocar na frente 母親氏名：　= husbandMotherName
+
+Nome da noiva escrito logo abaixo do número de matrícula =  wifeName
+Data de nascimento da noiva (formato japonês e depois da data colocar 生まれ) = wifeBirthDate
+Local de nascimento da noiva (primeiro a cidade com o kanji de 市 logo após e o nome do estado por extenso e depois coloca o kanji de 州) e colocar depois 出身 = wifeBirthPlace
+Nacionalidade da noiva (se for brasileiro, ブラジル国籍) = wifeCitizenship
+Nome do pai da noiva (se tiver) e colocar na frente 父親氏名： = wifeFatherName
+Nome da mãe da noiva e colocar na frente 母親氏名：　= wifeMotherName
+
+Data de registro do casamento = registrationDate
+
+Regime de bens do casamento (se for Comunhão parcial de bens, colocar 財産一部分与) = marryCondition
+
+Nomes do cônjuges depois de casados (se tiver o nome do marido aqui, senão colocar apenas "-") = husbandMarriedName
+Nomes do cônjuges depois de casados (se tiver o nome da esposa aqui, senão colocar apenas "-") = wifeMarriedName
+
+Conteúdo das averbações/anotações à acrescentar (se houver, colocar os detalhes traduzidos para o japonês) = registrationChange
+Conteúdo das Anotações de Registro (se houver, colocar os detalhes traduzidos para o japonês) = registrationAditionalInfo
+
+Se logo abaixo das Anotações de Registro houver um texto parecido com esse a seguir:
+
+"Certifico que, em data de dia de mês de ano, foi matorializada esta certidão enviada pela Central do Informações do Registro Civil, sendo a autenticidade de sua assinatura digital padrão ICP-Brasil por mim conferida."
+"Certidão lavrada por (nome da escrevente) - (título: escrevente ou oficial) do Registro Civil das Pessoas Naturais de Mauá. o(e) qual assinou eletronicamente aos 21 de Setembro de 2024, nos termos do Provimbato n° 46/2015 do Conselho Nacional de Justiça."
+
+Colocar o nome do escrevente/oficial = scrivenerName
+Colocar a primeira data (se houver, senão deixar apenas "") = digitalSignDate1
+Colocar a segunda data (se houver, senão deixar apenas "") = digitalSignDate2
+    
+Estado onde fica o cartório e colocar o kanji de estado 州 = notaryState
+Nome do cartório (se houver algo escrito antes da escrita Oficial de Registro ou Cartório de Pessoas Naturais, colocar e depois coloca o kanji de cartório 自然人登記役場) = notaryName
+Nome do oficial do cartório (em japonês) = mainsScrivenerName
+    
+Data de emissão da certidão (se houver, senão deixar apenas "") = emissionDate
+Nome da cidade que fica do lado da data de emissão (se houver、colocar o kanji de cidade 市) = notaryCity
+Nome do escrevente que assinou o documento (se houver, senão deixar apenas "") = scrivenerSignName
+Título do escrevente＝筆記者/oficial＝公証人 que assinou o documento (se houver colocar a tradução em japonês, senão deixar apenas "") = scrivenerType
+Nome da cidade abaixo do título de escrivão ou oficial (se houver, senão deixar apenas "") = scrivenerCity 
+
+
+IMPORTANTE: Retorne APENAS o objeto JSON abaixo preenchido com os dados extraídos, sem comentários, sem explicações, sem markdown code blocks (```), e sem o "export const". Apenas o JSON puro começando com { e terminando com }.
+
+Colocar os respectivos valores no JSON abaixo lembrando para não colocar nas traduções dos nomes para o katakana o símbolo ・:
+
+{
+    "titleAditional1": "",
+    "titleAditional2": "",
+    "husbandSingleName": "",
+    "husbandKosekiName": "",
+    "husbandKojinBango": "",
+    "wifeSingleName": "",
+    "wifeKosekiName": "",
+    "wifeKojinBango": "",
+    "registrationNum": "",
+    "husbandName": "",
+    "husbandBirthDate": "",
+    "husbandBirthPlace": "",
+    "husbandCitizenship": "",
+    "husbandFatherName": "",
+    "husbandFatherKosekiName": "",
+    "husbandMotherName": "",
+    "husbandMotherKosekiName": "",
+    "wifeName": "",
+    "wifeBirthDate": "",
+    "wifeBirthPlace": "",
+    "wifeCitizenship": "",
+    "wifeFatherName": "",
+    "wifeFatherKosekiName": "",
+    "wifeMotherName": "",
+    "wifeMotherKosekiName": "",
+    "registrationDate": "",
+    "marryCondition": "",
+    "husbandMarriedName": "",
+    "wifeMarriedName": "",
+    "registrationChange": "",
+    "registrationAditionalInfo": "",
+    "scrivenerName": "",
+    "digitalSignDate1": "",
+    "digitalSignDate2": "",
+    "notaryCity": "",
+    "notaryState": "",
+    "notaryName": "",
+    "mainsScrivenerName": "",
+    "emissionDate": "",
+    "scrivenerSignCity": "",
+    "scrivenerSignName": "",
+    "scrivenerType": "",
+    "scrivenerCity": "",
+    "backRegistrationChange": ""
+}
