@@ -1,6 +1,6 @@
-# Honyaku App - AI-Powered Document Translation System
+# Honyaku BR Certificates - AI-Powered Document Translation System
 
-A system that automatically extracts and translates data from Brazilian birth and marriage certificates using AI (Local MLX), with inline editing capabilities and backup management.
+A system that automatically extracts and translates data from Brazilian birth and marriage certificates using AI (Ollama), with inline editing capabilities and backup management.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ A system that automatically extracts and translates data from Brazilian birth an
 
 ### Core Features
 
-- **AI-Powered OCR**: Automatically extract text from images/PDFs using Local MLX vision models
+- **AI-Powered OCR**: Automatically extract text from images/PDFs using Ollama vision models (`qwen3.5:4b`)
 - **Document Type Detection**: Automatically identifies document type (BIRTH_NEW, BIRTH_OLD, MARRIAGE_NEW)
 - **Smart Translation**: Translates extracted text to Japanese with proper formatting rules
 - **Inline Editing**: Click on any field to edit directly in the document view
@@ -38,7 +38,7 @@ A system that automatically extracts and translates data from Brazilian birth an
 
 ```
 honyaku-app/
-├── frontend/                  # SvelteKit frontend application
+├── front/                  # SvelteKit frontend application
 │   ├── src/
 │   │   ├── routes/          # Pages
 │   │   ├── +page.svelte         # Main page with upload & backup list
@@ -106,16 +106,12 @@ honyaku-app/
 - **Pillow (PIL)**: Image processing
 - **pdf2image**: PDF to image conversion
 - **Requests**: HTTP client for AI REST API
-- **Local MLX**: Local AI inference server
-  - `qwen3-vl:latest`: Vision model for text extraction
-  - `gemma3:27b`: Text model for data structuring
-  - Alternative models: `gemma3:4b`, `ministral-3:14b` available
 
 ### AI
-- **Local MLX Server**: Local AI inference engine
-  - `qwen3-vl:latest`: Vision model for text extraction
-  - `gemma3:27b`: Text model for data structuring
-  - Alternative models: `gemma3:4b`, `ministral-3:14b` available
+- **Ollama**: Local AI inference engine
+  - `qwen3.5:4b`: Vision model for text extraction
+  - `mistral:instruct`: Text model for data structuring and translation
+  - Alternative models: `llama3`, `phi3` available
 
 ## Architecture
 
@@ -135,9 +131,9 @@ honyaku-app/
        ├──────────────────────┐
        │                      │
        ▼                      ▼
-┌──────────┐       ┌──────────┐
-│ Local MLX │       │  PDF/Img │
-│  Vision  │       │   Files   │
+┌─────────────┐       ┌──────────┐
+│   Ollama    │       │  PDF/Img │
+│  Vision      │       │   Files   │
 └──────┬───┘       └──────────┘
        │ Text Extraction
        ▼
@@ -150,8 +146,8 @@ honyaku-app/
 
 1. **Upload**: Frontend sends image/PDF to backend
 2. **Processing**: Backend converts to image (if PDF)
-3. **Text Extraction**: MLX vision model extracts all text
-4. **Data Structuring**: MLX text model structures data into JSON
+3. **Text Extraction**: Ollama vision model (`qwen3.5:4b`) extracts all text
+4. **Data Structuring**: Ollama text model (`mistral:instruct`) translates and structures data into JSON
 5. **State Management**: Data stored in Svelte store with original backup
 6. **Display**: User sees document with extracted data
 7. **Editing**: User clicks fields to edit inline
@@ -164,7 +160,7 @@ honyaku-app/
 
 - **Node.js 18+** (for frontend)
 - **Python 3.12+** (for backend)
-- **Local MLX Server** (running locally on port 45389)
+- **Ollama** (installed and running locally)
 - **Poppler** (for PDF processing, optional if using images only)
 
 ### Backend Setup
@@ -185,8 +181,12 @@ honyaku-app/
    pip install -r requirements.txt
    ```
 
-4. **Verify Local MLX is running**
-   Ensure your custom MLX inference server is active on `http://localhost:45389`.
+4. **Verify Ollama is running**
+   Ensure Ollama is active and the required models are pulled:
+   ```bash
+   ollama pull qwen3.5:4b
+   ollama pull mistral:instruct
+   ```
 
 5. **Start backend server**:
    ```bash
@@ -199,7 +199,7 @@ honyaku-app/
 
 1. **Navigate to frontend directory**:
    ```bash
-   cd frontend
+   cd front
    ```
 
 2. **Install dependencies**:
@@ -222,8 +222,8 @@ Edit `backend/main.py` to configure:
 
 ```python
 # Model configurations
-VISION_MODEL = "qwen3-vl:latest"  # Vision model for text extraction
-TEXT_MODEL = "gemma3:27b"        # Text model for data structuring
+VISION_MODEL = "qwen3.5:4b"      # Vision model for text extraction
+TEXT_MODEL = "mistral:instruct"   # Text model for data structuring and translation
 
 # Backup directories
 BACKUP_DIR = "../Backup"
@@ -240,13 +240,11 @@ No additional configuration required. The frontend automatically connects to the
 
 ### AI Models
 
-**Available MLX Models**:
-- `qwen3-vl:latest` - Vision model (recommended for text extraction)
-- `qwen3-vl:32b` - Larger vision model (slower, more accurate)
-- `gemma3:27b` - Text model (recommended for structuring)
-- `gemma3:4b` - Smaller text model (faster)
-- `ministral-3:14b` - Alternative text model
-- `translategemma:27b` - Specialized translation model
+**Available Ollama Models**:
+- `qwen3.5:4b` - Recommended for text extraction
+- `mistral:instruct` - Recommended for structuring and translation
+- `llama3` - Alternative text model
+- `phi3` - Lightweight alternative
 
 ## Usage
 
@@ -258,7 +256,7 @@ No additional configuration required. The frontend automatically connects to the
    cd backend && source venv/bin/activate && uvicorn main:app --reload --host 0.0.0.0 --port 8000
    
    # Terminal 2: Frontend
-   cd frontend && npm run dev
+   cd front && npm run dev
    
    # Terminal 3: Local MLX Server (if not running on port 45389)
    # Run your native MLX start command
@@ -467,7 +465,7 @@ GET /
 
 Response (200 OK):
 {
-    "message": "Honyaku App Backend is running"
+    "message": "Honyaku BR Certificates Backend is running"
 }
 ```
 
@@ -635,7 +633,7 @@ npm run dev
 
 - **Backend**: `/backend/main.py`
 - **Prompts**: `/backend/prompts/*.txt`
-- **Frontend**: `/frontend/src/routes/+page.svelte`
+- **Frontend**: `/front/src/routes/+page.svelte`
 - **Components**: `/frontend/src/lib/components/*.svelte`
 - **Store**: `/frontend/src/lib/stores/certificationStore.js`
 

@@ -204,7 +204,7 @@ async def upload_file(
 
 @app.get("/")
 def read_root():
-    return {"message": "Honyaku App Backend is running"}
+    return {"message": "Honyaku BR Certificates Backend is running"}
 
 @app.post("/backup")
 async def save_backup(backup: BackupData):

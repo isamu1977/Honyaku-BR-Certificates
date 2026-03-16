@@ -215,6 +215,10 @@
   });
 </script>
 
+<svelte:head>
+  <title>Honyaku BR Certificates</title>
+</svelte:head>
+
 <main
   class="flex flex-col min-h-screen w-full bg-[#f4f4f0] text-black font-sans selection:bg-black selection:text-white p-4 md:p-12"
 >
@@ -224,8 +228,8 @@
     <h1
       class="font-mono text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none"
     >
-      HONYAKU<br /><span class="text-xl md:text-3xl font-light tracking-widest"
-        >TRANSLATION ENGINE</span
+      Honyaku BR<br /><span class="text-xl md:text-3xl font-light tracking-widest"
+        >Certificates</span
       >
     </h1>
     <div

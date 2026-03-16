@@ -19,7 +19,7 @@
 </script>
 
 <svelte:head>
-    <title>出生証明書（厳密テーブル形式）- 翻訳文書</title>
+    <title>Honyaku BR Certificates - 出生証明書</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-200 py-6 print:bg-white print:py-0">
