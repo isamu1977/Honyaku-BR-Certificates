@@ -1,6 +1,6 @@
 # Honyaku BR Certificates - AI-Powered Document Translation System
 
-A system that automatically extracts and translates data from Brazilian birth and marriage certificates using AI (Ollama), with inline editing capabilities and backup management.
+A system that automatically extracts and translates data from Brazilian birth and marriage certificates using AI, with inline editing capabilities and backup management.
 
 ## Table of Contents
 
@@ -13,26 +13,31 @@ A system that automatically extracts and translates data from Brazilian birth an
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Backup System](#backup-system)
+- [Migration from Local Models to Cloud API](#migration-from-local-models-to-cloud-api)
 - [Troubleshooting](#troubleshooting)
 
 ## Features
 
 ### Core Features
 
-- **AI-Powered OCR**: Automatically extract text from images/PDFs using Ollama vision models (`qwen3.5:4b`)
-- **Document Type Detection**: Automatically identifies document type (BIRTH_NEW, BIRTH_OLD, MARRIAGE_NEW)
+- **AI-Powered OCR**: Automatically extract text from images/PDFs using Google Gemini API (`gemini-2.5-flash`)
+- **Single-Step Multimodal Processing**: Image extraction, translation, and JSON structuring in one API call
+- **Document Type Detection**: Automatically identifies document type (BIRTH_NEW, BIRTH_OLD, MARRIAGE_NEW, MARRIAGE_STRICT, etc.)
 - **Smart Translation**: Translates extracted text to Japanese with proper formatting rules
 - **Inline Editing**: Click on any field to edit directly in the document view
 - **Visual Feedback**: Edited fields are highlighted with yellow background and edit icon (✎)
-- **Backup Management**: Save, load, and manage document backups
-- **Multiple Document Types**: Supports birth certificates (new/old versions) and marriage certificates
+- **Backup Management**: Save, load, and manage document backups with duplicate prevention
+- **Multiple Document Types**: Supports birth certificates (new/old/strict versions) and marriage certificates (new/old/strict versions)
 - **Print-Ready**: Direct printing functionality with proper formatting
 
 ### Document Types Supported
 
-- **Birth Certificate (New)**: Modern format with Matrícula number
-- **Birth Certificate (Old)**: Old format with Livro/Folha numbers
-- **Marriage Certificate (New)**: Modern marriage certificates
+- **Birth Certificate (New)**: Modern format with Matrícula number (BIRTH_NEW_VER1, BIRTH_NEW_VER2)
+- **Birth Certificate (Old)**: Old format with Livro/Folha numbers (BIRTH_OLD)
+- **Birth Certificate (Strict)**: Strict 19-key schema format (BIRTH_STRICT)
+- **Marriage Certificate (New)**: Modern marriage certificates (MARRIAGE_NEW_VER1, MARRIAGE_NEW_VER2)
+- **Marriage Certificate (Old)**: Old format marriage certificates (MARRIAGE_OLD)
+- **Marriage Certificate (Strict)**: Strict 27-key schema format (MARRIAGE_STRICT)
 
 ## Project Structure
 
@@ -105,13 +110,18 @@ honyaku-app/
 - **Pydantic**: Data validation using BaseModel
 - **Pillow (PIL)**: Image processing
 - **pdf2image**: PDF to image conversion
-- **Requests**: HTTP client for AI REST API
+- **google-generativeai**: Google Gemini Python SDK
 
 ### AI
-- **Ollama**: Local AI inference engine
-  - `qwen3.5:4b`: Vision model for text extraction
-  - `mistral:instruct`: Text model for data structuring and translation
-  - Alternative models: `llama3`, `phi3` available
+- **Google Gemini API**: Cloud-based multimodal AI for OCR, translation, and JSON structuring
+  - `gemini-2.5-flash`: Primary model for single-step processing
+  - Requires `GEMINI_API_KEY` environment variable
+  - Single API call replaces the previous two-step local pipeline
+
+### Legacy (Backup Only)
+- **Ollama**: Local AI inference engine (archived in `ai_providers_ollama_backup.py`)
+  - `qwen3.5:2b`: Was used for vision-based text extraction
+  - `mistral:instruct`: Was used for data structuring and translation
 
 ## Architecture
 
@@ -128,31 +138,32 @@ honyaku-app/
 │   Backend    │  FastAPI Server
 └──────┬──────┘
        │
-       ├──────────────────────┐
-       │                      │
-       ▼                      ▼
-┌─────────────┐       ┌──────────┐
-│   Ollama    │       │  PDF/Img │
-│  Vision      │       │   Files   │
-└──────┬───┘       └──────────┘
-       │ Text Extraction
+       │ Single multimodal API call
+       ▼
+┌──────────────────────────────┐
+│   Google Gemini 2.5 Flash    │
+│  (Image + Prompt → JSON)     │
+└──────────────────────────────┘
+       │
        ▼
 ┌─────────────────┐
-│  Data JSON     │
+│  Data JSON      │
 └─────────────────┘
 ```
 
 ### Data Flow
 
-1. **Upload**: Frontend sends image/PDF to backend
-2. **Processing**: Backend converts to image (if PDF)
-3. **Text Extraction**: Ollama vision model (`qwen3.5:4b`) extracts all text
-4. **Data Structuring**: Ollama text model (`mistral:instruct`) translates and structures data into JSON
-5. **State Management**: Data stored in Svelte store with original backup
-6. **Display**: User sees document with extracted data
-7. **Editing**: User clicks fields to edit inline
-8. **Backup**: Edited data can be saved as backup file
-9. **Load**: Previous backups can be loaded from storage
+1. **Upload**: Frontend sends image/PDF to backend `/upload` endpoint
+2. **Processing**: Backend converts PDF to image if needed (using `pdf2image`)
+3. **Single-Step Extraction**: Google Gemini 2.5 Flash processes the image + prompt together in one multimodal API call
+   - Image is sent as a PIL Image object alongside the document-type-specific prompt
+   - JSON output is enforced via `response_mime_type="application/json"`
+   - OCR, translation to Japanese, and JSON structuring happen in a single step
+4. **State Management**: Data stored in Svelte store with original backup
+5. **Display**: User sees document with extracted data
+6. **Editing**: User clicks fields to edit inline
+7. **Backup**: Edited data can be saved as backup file (with duplicate prevention)
+8. **Load**: Previous backups can be loaded from storage
 
 ## Installation
 
@@ -160,7 +171,7 @@ honyaku-app/
 
 - **Node.js 18+** (for frontend)
 - **Python 3.12+** (for backend)
-- **Ollama** (installed and running locally)
+- **Google AI Studio API Key** (free, get at https://aistudio.google.com/app/apikey)
 - **Poppler** (for PDF processing, optional if using images only)
 
 ### Backend Setup
@@ -181,12 +192,12 @@ honyaku-app/
    pip install -r requirements.txt
    ```
 
-4. **Verify Ollama is running**
-   Ensure Ollama is active and the required models are pulled:
-   ```bash
-   ollama pull qwen3.5:4b
-   ollama pull mistral:instruct
+4. **Configure API Key**:
+   Create a `.env` file in the `backend/` directory with your Google AI Studio API key:
    ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
+   You can get a free API key at https://aistudio.google.com/app/apikey
 
 5. **Start backend server**:
    ```bash
@@ -218,19 +229,23 @@ honyaku-app/
 
 ### Backend Configuration
 
-Edit `backend/main.py` to configure:
+**API Key**: Set `GEMINI_API_KEY` in `backend/.env` (required)
 
+**Model Selection**: Edit `backend/services/ai_providers.py` to change the Gemini model:
 ```python
-# Model configurations
-VISION_MODEL = "qwen3.5:4b"      # Vision model for text extraction
-TEXT_MODEL = "mistral:instruct"   # Text model for data structuring and translation
+GEMINI_MODEL = "gemini-2.5-flash"  # or other available models
+```
 
-# Backup directories
+**Backup Directories** (in `backend/main.py`):
+```python
 BACKUP_DIR = "../Backup"
 BACKUP_SUBDIRS = {
     "BIRTH_NEW": "BirthNew",
     "BIRTH_OLD": "BirthOld",
-    "MARRIAGE_NEW": "MarriageNew"
+    "BIRTH_STRICT": "BirthNew",
+    "MARRIAGE_NEW": "MarriageNew",
+    "MARRIAGE_OLD": "MarriageNew",
+    "MARRIAGE_STRICT": "MarriageNew"
 }
 ```
 
@@ -238,13 +253,12 @@ BACKUP_SUBDIRS = {
 
 No additional configuration required. The frontend automatically connects to the backend at `http://localhost:8000`.
 
-### AI Models
+### Available Gemini Models
 
-**Available Ollama Models**:
-- `qwen3.5:4b` - Recommended for text extraction
-- `mistral:instruct` - Recommended for structuring and translation
-- `llama3` - Alternative text model
-- `phi3` - Lightweight alternative
+- `gemini-2.5-flash` - Recommended for speed and accuracy
+- `gemini-2.5-flash-lite` - Lighter/faster variant
+- `gemini-1.5-flash` - Previous generation, good for testing
+- `gemini-2.5-pro` - Most capable, higher cost
 
 ## Usage
 
@@ -254,12 +268,9 @@ No additional configuration required. The frontend automatically connects to the
    ```bash
    # Terminal 1: Backend
    cd backend && source venv/bin/activate && uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   
+
    # Terminal 2: Frontend
    cd front && npm run dev
-   
-   # Terminal 3: Local MLX Server (if not running on port 45389)
-   # Run your native MLX start command
 
 2. **Open browser**:
    Navigate to `http://localhost:5173`
@@ -267,10 +278,11 @@ No additional configuration required. The frontend automatically connects to the
 3. **Upload document**:
    - Click on the upload area
    - Select an image (JPG, PNG) or PDF
-   - Wait for AI processing (may take 10-30 seconds)
+   - Select the document type (e.g., MARRIAGE_STRICT, BIRTH_STRICT, etc.)
+   - Wait for Gemini processing (typically 3-10 seconds)
 
 4. **Review extracted data**:
-   - System automatically identifies document type
+   - Data is automatically extracted, translated to Japanese, and structured as JSON
    - Redirects to appropriate document template
    - All fields are filled with extracted data
 
@@ -365,12 +377,14 @@ Content-Type: multipart/form-data
 
 Request:
 - file: Image or PDF file
+- document_type: Form field (e.g., "MARRIAGE_STRICT", "BIRTH_STRICT")
 
 Response (200 OK):
 {
-    "documentType": "BIRTH_NEW|BIRTH_OLD|MARRIAGE_NEW",
-    "name": "Japanese name",
-    "birthDate": "2024年01月15日",
+    "documentType": "MARRIAGE_STRICT",
+    "registrationNum": "...",
+    "currentNameSpouse1": "Japanese name",
+    "currentNameSpouse2": "Japanese name",
     ...
 }
 
@@ -381,7 +395,7 @@ Error (400):
 
 Error (500):
 {
-    "detail": "Failed to extract text from image"
+    "detail": "Error in AI processing: ..."
 }
 ```
 
@@ -475,13 +489,14 @@ Response (200 OK):
 
 ```
 Backup/
-├── BirthNew/              # New birth certificate backups
+├── BirthNew/              # Birth certificate backups (new/strict)
 │   ├── 2026-01-22-Name1-BIRTH_NEW.js
-│   └── 2026-01-22-Name2-BIRTH_NEW.js
+│   └── 2026-01-22-Name2-BIRTH_STRICT.js
 ├── BirthOld/              # Old birth certificate backups
 │   └── 2026-01-22-Name3-BIRTH_OLD.js
 └── MarriageNew/           # Marriage certificate backups
-    └── 2026-01-22-Name4-MARRIAGE_NEW.js
+    ├── 2026-01-22-Name4-MARRIAGE_NEW.js
+    └── 2026-01-22-Name5-MARRIAGE_STRICT.js
 ```
 
 ### Backup Operations
@@ -551,6 +566,51 @@ The AI follows specific formatting rules based on the document type:
 - Registration number: Format as "XX番 YYページ ZZ冊"
 - Use "出身" after birth places
 
+## Migration from Local Models to Cloud API
+
+### Background
+
+During the development phase, this application used a **two-step local pipeline** with Ollama:
+
+1. **Step 1 (OCR)**: `qwen3.5:2b` vision model extracted text from the certificate image
+2. **Step 2 (Translation & JSON)**: `mistral:instruct` model structured the extracted text into JSON and translated to Japanese
+
+While the text extraction (OCR) step worked correctly, the **translation and JSON formatting were inconsistent**. Even with `mistral:instruct`, the output sometimes contained:
+- Incomplete translations (mixed Portuguese/Japanese)
+- JSON formatting errors (trailing commas, missing quotes, markdown blocks)
+- Hallucinated or invented data not present in the source document
+- Incorrect field mappings despite strict prompt instructions
+
+### The Change
+
+The pipeline was refactored to use a **single multimodal API call** with Google's Gemini API (`gemini-2.5-flash`):
+
+- **Before**: 2 separate local model calls (Ollama qwen3.5 → Ollama mistral)
+- **After**: 1 multimodal call (Gemini 2.5 Flash with image + prompt → JSON)
+
+### Results
+
+After migrating to the external Gemini API:
+
+- **Text extraction**: Equally accurate, handles low-quality images better
+- **Translation**: Consistent, high-quality Japanese translation for all fields
+- **JSON formatting**: Reliable output via `response_mime_type="application/json"` enforcement
+- **No hallucination**: Strict adherence to source data with anti-hallucination instructions
+- **Faster processing**: Typically 3-10 seconds vs. 10-30+ seconds with local models
+- **Simpler architecture**: No need to run Ollama locally or manage multiple models
+
+### Technical Details
+
+The `GeminiProvider` in `backend/services/ai_providers.py` uses:
+- `google-generativeai` SDK
+- Single `generate_content([prompt, image])` call with PIL Image
+- `generation_config={"response_mime_type": "application/json"}` for forced JSON output
+- Document-type-specific prompts from `backend/prompts/`
+
+### Legacy Code
+
+The original Ollama-based implementation is preserved in `backend/services/ai_providers_ollama_backup.py` for reference. It is **no longer used** by the application.
+
 ## Troubleshooting
 
 ### Backend Issues
@@ -564,11 +624,21 @@ Solution:
 - Run: source venv/bin/activate && pip install -r requirements.txt
 ```
 
-**Problem**: Text extraction returns null
+**Problem**: `GEMINI_API_KEY is not set` error
 ```
 Solution:
-- Verify Local MLX is running with the required models (e.g., glm-ocr, translategemma-12b-4bit) loaded over port 45389.
-- Increase model timeout in request
+- Create backend/.env file with: GEMINI_API_KEY=your_key_here
+- Get a free API key at https://aistudio.google.com/app/apikey
+- Restart the backend server
+```
+
+**Problem**: Text extraction returns error
+```
+Solution:
+- Verify GEMINI_API_KEY is correct and active
+- Check internet connection (Gemini API requires online access)
+- Check backend logs for specific API error messages
+- Try a different model in ai_providers.py (e.g., gemini-1.5-flash)
 ```
 
 ### Frontend Issues
@@ -587,6 +657,7 @@ Solution:
 - Check backend is running: curl http://localhost:8000/
 - Check backend logs in terminal
 - Verify file is image or PDF
+- Verify GEMINI_API_KEY is set in backend/.env
 - Check PDF processing (requires Poppler)
 ```
 
@@ -675,6 +746,14 @@ For issues or questions:
 
 ## Version History
 
+- **v2.0**: Migration to Google Gemini API
+  - Replaced two-step Ollama pipeline with single Gemini multimodal call
+  - Consistent translation and JSON formatting
+  - Added `GEMINI_API_KEY` configuration via `.env`
+  - Fixed backup naming for marriage certificates (spouse names)
+  - Added duplicate backup prevention
+  - Archived Ollama provider to `ai_providers_ollama_backup.py`
+
 - **v1.0**: Initial release
   - AI-powered text extraction
   - Document type detection
@@ -684,4 +763,4 @@ For issues or questions:
 
 ---
 
-**Built with SvelteKit, FastAPI, and Local MLX AI**
+**Built with SvelteKit, FastAPI, and Google Gemini AI**

@@ -157,8 +157,6 @@ SCHEMA_EXAMPLE = {
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    provider: str = Form("ollama"),
-    model: str = Form("qwen3.5:4b"),
     document_type: str = Form(...)
 ):
     content_type = file.content_type or ""
@@ -178,26 +176,22 @@ async def upload_file(
                  raise HTTPException(status_code=400, detail="Could not convert PDF to image")
         else:
             image = Image.open(io.BytesIO(contents))
-            
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
     if image:
         try:
-            ai_service = ai_providers.get_provider(provider, model)
-            print(f"\n>>> INICIANDO EXTRAÇÃO - Provider: {provider}, Model: {model}")
-            
-            # Step 1: Extract Text
-            extracted_text = ai_service.extract_text(image)
-            if not extracted_text:
-                 raise HTTPException(status_code=500, detail=f"Failed to extract text from image using {provider}")
-                 
-            # Step 2: Structure Data
-            structured_data = ai_service.structure_data(extracted_text, SCHEMA_EXAMPLE, document_type)
-            
+            # Use Gemini 2.5 Pro with single multimodal call
+            ai_service = ai_providers.get_provider("gemini")
+            print(f"\n>>> INICIANDO PROCESSAMENTO - Provider: gemini, Model: {ai_providers.GEMINI_MODEL}")
+
+            # Single-step: image + prompt -> JSON
+            structured_data = ai_service.process_image(image, document_type)
+
             if not structured_data:
                 structured_data = {}
-            
+
             return structured_data
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error in AI processing: {str(e)}")
@@ -212,19 +206,36 @@ async def save_backup(backup: BackupData):
         data = backup.data
         document_type = data.get("documentType", "BIRTH_NEW")
         subdir = BACKUP_SUBDIRS.get(document_type, "BirthNew")
-        
-        # Generate filename
-        name = data.get("name", "") or data.get("husbandName", "") or data.get("wifeName", "") or "unknown"
+
+        # Generate filename - support both birth and marriage certificate key names
+        name = (
+            data.get("name", "")
+            or data.get("husbandName", "")
+            or data.get("wifeName", "")
+            or data.get("currentNameSpouse1", "")
+            or data.get("spouse1Name", "")
+            or data.get("currentNameSpouse2", "")
+            or data.get("spouse2Name", "")
+            or "unknown"
+        )
         name_clean = "".join(c for c in name if c.isalnum() or c in " -_").strip()
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d")
         filename = f"{timestamp}-{name_clean}-{document_type}.js"
         filepath = os.path.join(BACKUP_DIR, subdir, filename)
-        
+
+        # Check for existing backup with same name+type and remove it to prevent duplicates
+        pattern_suffix = f"-{name_clean}-{document_type}.js"
+        for existing_file in os.listdir(os.path.join(BACKUP_DIR, subdir)):
+            if existing_file.endswith(pattern_suffix) and existing_file != filename:
+                old_path = os.path.join(BACKUP_DIR, subdir, existing_file)
+                os.remove(old_path)
+                print(f"Removed duplicate backup: {existing_file}")
+
         # Write backup file
         export_content = "export const certificationData = " + json.dumps(data, indent=2, ensure_ascii=False) + ";"
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(export_content)
-        
+
         return {"success": True, "filename": filename, "path": filepath}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving backup: {str(e)}")

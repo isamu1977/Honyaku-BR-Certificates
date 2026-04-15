@@ -42,13 +42,13 @@ Matricula
 1º Casar ENDRIU FAVARON OSEKI
 Dia 25 Mês 12 Ano 1988
 Nacionalidade BRASILEIRA Estado civil SOLTEIRO
-Municipio da naturalidade UF SP
+Naturalidade SAO PAULO - SP
 Genitor(es) TADASHI SUGAHARA OSEKI, OTACILIA APARECIDA FAVARON OSEKI
 Nome que passou a utilizar ENDRIU FAVARON MOURA OSEKI
 2º Casar CINTHIA COSTA MOURA
 Dia 06 Mês 05 Ano 1990
 Nacionalidade BRASILEIRA Estado civil SOLTEIRA
-Municipio da naturalidade UF SP
+Naturalidade SAO PAULO - SP
 Genitor(es) SÉRGIO LUIZ MOURA, IRACEMA JESUINO DA COSTA
 Nome que passou a utilizar CINTHIA MOURA OSEKI
 Data da celebração do casamento SETE DE JUNHO DE DOIS MIL E VINTE E QUATRO Dia 07 Mês 06 Ano 2024
@@ -70,14 +70,14 @@ Rafael Spinala Castro Oficial de Registro Civil
 "spouse1BirthDate": "1988年12月25日",
 "spouse1Nationality": "ブラジル",
 "spouse1CivilStatus": "独身",
-"spouse1BirthPlace": "UF SP",
+"spouse1BirthPlace": "サンパウロ市　サンパウロ州",
 "spouse1Parents": "タダシ スガハラ オセキ と オタシリア アパレシダ ファヴァロン オセキ",
 "spouse1NewName": "エンドリュ ファヴァロン モウラ オセキ",
 "spouse2Name": "シンチア コスタ モウラ",
 "spouse2BirthDate": "1990年05月06日",
 "spouse2Nationality": "ブラジル",
 "spouse2CivilStatus": "独身",
-"spouse2BirthPlace": "UF SP",
+"spouse2BirthPlace": "サンパウロ市　サンパウロ州",
 "spouse2Parents": "セルジオ ルイス モウラ と イラセマ ジェスィノ ダ コスタ",
 "spouse2NewName": "シンチア モウラ オセキ",
 "marriageDate": "2024年06月07日",

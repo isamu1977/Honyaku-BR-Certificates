@@ -6,8 +6,8 @@
   import { onMount } from "svelte";
   import ProviderSelector from "$lib/components/ProviderSelector.svelte";
 
-  // バックエンド URL を環境変数から取得（デフォルト：http://localhost:8080）
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+  // バックエンド URL を環境変数から取得（デフォルト：http://localhost:8000）
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
   let showButton = false;
   let isLoading = false;
